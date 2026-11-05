@@ -1,9 +1,9 @@
 # 🛠️ 개발 계획서 (04_DEV_PLAN.md)
 
-> **상태: 작성 중 (2026-11-05)**  
+> **상태: 진행 중 (2026-11-05 업데이트)**  
 > 기준 문서: `01_IDEA.md` · `02_PRD.md` · `03_UI_FLOW.md` · `DESIGN.md`  
 > 기술 스택 확정: **Next.js 16 (App Router) + TypeScript + Tailwind CSS 4 + Vercel Hobby**  
-> 현재 위치: **1단계 진행 중** (Next.js 프로젝트 생성 완료, GitHub/Vercel 연결 대기)
+> 현재 위치: **8단계 (품질 점검)** — 1~7단계 개발 완료, GitHub 푸시 완료, Vercel 배포 대기
 
 ---
 
@@ -85,12 +85,12 @@ POST /api/analyze
 
 ---
 
-### 0단계: 사전 준비 ← **코딩 전 완료 필수**
+### 0단계: 사전 준비 ✅ 완료
 
 | # | 작업 | 완료 |
 |---|---|---|
-| 0-1 | Google AI Studio에서 Gemini API 키 발급 (결제 수단 **미연결** 필수) | [ ] |
-| 0-2 | GitHub 계정 준비, 비공개 저장소 생성 | [ ] |
+| 0-1 | Google AI Studio에서 Gemini API 키 발급 (결제 수단 **미연결** 필수) | [x] |
+| 0-2 | GitHub 계정 준비, 비공개 저장소 생성 (`hemj3519/my---app`) | [x] |
 | 0-3 | Vercel 계정 가입 (GitHub로 로그인) | [ ] |
 | 0-4 | Gemini API 약관 확인: 무료 티어 데이터 처리 범위, 18세 미만 제한 | [ ] |
 
@@ -98,22 +98,16 @@ POST /api/analyze
 
 ---
 
-### 1단계: 환경 구축 & 첫 배포 ← **진행 중**
-
-**이미 완료된 항목:**
-- [x] `create-next-app`으로 Next.js 16 + TypeScript + Tailwind 4 + App Router 프로젝트 생성
-- [x] 기본 폴더 뼈대 생성 (`components/`, `lib/`, `types/`, `api/analyze/`)
-
-**남은 작업:**
+### 1단계: 환경 구축 & 첫 배포 ✅ 완료 (Vercel 연결 제외)
 
 | # | 작업 | 완료 |
 |---|---|---|
-| 1-1 | `.env.local` 파일 생성 후 `GEMINI_API_KEY=...` 입력 | [ ] |
+| 1-1 | `.env.local` 파일 생성 후 `GEMINI_API_KEY=...` 입력 | [x] API 키 등록 완료 |
 | 1-2 | `.gitignore`에 `.env.local` 포함 여부 확인 | [x] `.env*` 패턴으로 보호 확인 |
-| 1-3 | `git init` → 첫 커밋 → GitHub 저장소에 푸시 | 커밋 완료(cb286af), 푸시 대기 |
-| 1-4 | Vercel에서 GitHub 저장소 연결 → 첫 자동 배포 실행 | [ ] |
-| 1-5 | Vercel 프로젝트 설정에서 환경변수 `GEMINI_API_KEY` 등록 (Production + Preview) | [ ] |
-| 1-6 | `page.tsx`를 임시 "환경 구축 완료" 메시지로 교체 | [x] |
+| 1-3 | `git init` → 커밋 → GitHub 저장소 푸시 | [x] `hemj3519/my---app` 푸시 완료 |
+| 1-4 | Vercel에서 GitHub 저장소 연결 → 첫 자동 배포 실행 | [ ] **9단계에서 진행** |
+| 1-5 | Vercel 프로젝트 설정에서 환경변수 `GEMINI_API_KEY` 등록 (Production + Preview) | [ ] **9단계에서 진행** |
+| 1-6 | `page.tsx` 구현 | [x] 전체 상태 머신 구현 완료 |
 
 **검증:**
 - `npm run dev` → `http://localhost:3000` 페이지 뜸
@@ -123,22 +117,22 @@ POST /api/analyze
 
 ---
 
-### 2단계: 디자인 기반 — 색·글꼴·공통 컴포넌트
+### 2단계: 디자인 기반 — 색·글꼴·공통 컴포넌트 ✅ 완료
 
 기준: `DESIGN.md` 3~9장
 
 | # | 작업 | 완료 |
 |---|---|---|
-| 2-1 | `globals.css`에 색 토큰 10종 CSS 변수로 정의, 다크모드(`prefers-color-scheme`) 분리 | [ ] |
-| 2-2 | 한지 배경 질감 CSS (`radial-gradient` 노이즈, 별자리 점선 패턴) | [ ] |
-| 2-3 | `next/font/google`으로 글꼴 3종 연결, `layout.tsx`에 적용 | [ ] |
-| 2-4 | `globals.css`에 애니메이션 키프레임 7종 정의 (`DESIGN.md` 7장) | [ ] |
-| 2-5 | `prefers-reduced-motion` 미디어쿼리로 애니메이션 전체 off | [ ] |
-| 2-6 | `ObangsaekStripe.tsx` — 오방색 띠 컴포넌트 | [ ] |
-| 2-7 | 버튼 3종 CSS 클래스 정의 (`btn-primary`, `btn-secondary`, `btn-text`) | [ ] |
-| 2-8 | `Stamp.tsx` — CSS 도장 컴포넌트 (글자·모양·기울임 props) | [ ] |
-| 2-9 | `Toast.tsx` — 부적 쪽지 토스트 컴포넌트 (2~3초 자동 소멸) | [ ] |
-| 2-10 | 임시 디자인 확인 페이지에 위 요소 나열 (개발 중만 사용) | [ ] |
+| 2-1 | `globals.css`에 색 토큰 10종 CSS 변수로 정의, 다크모드(`prefers-color-scheme`) 분리 | [x] |
+| 2-2 | 한지 배경 질감 CSS (`radial-gradient` 노이즈, 별자리 점선 패턴) | [x] |
+| 2-3 | `next/font/google`으로 글꼴 3종 연결, `layout.tsx`에 적용 | [x] |
+| 2-4 | `globals.css`에 애니메이션 키프레임 7종 정의 (`DESIGN.md` 7장) | [x] |
+| 2-5 | `prefers-reduced-motion` 미디어쿼리로 애니메이션 전체 off | [x] |
+| 2-6 | `ObangsaekStripe.tsx` — 오방색 띠 컴포넌트 | [x] |
+| 2-7 | 버튼 3종 CSS 클래스 정의 (`btn-primary`, `btn-secondary`, `btn-text`) | [x] |
+| 2-8 | `Stamp.tsx` — CSS 도장 컴포넌트 (글자·모양·기울임 props) | [x] |
+| 2-9 | `Toast.tsx` — 부적 쪽지 토스트 컴포넌트 (2~3초 자동 소멸) | [x] |
+| 2-10 | 임시 디자인 확인 페이지에 위 요소 나열 (개발 중만 사용) | [x] |
 
 **검증:**
 - 붓글씨 / 바탕체 / 고딕 세 글꼴이 각각 다르게 보임
@@ -148,21 +142,21 @@ POST /api/analyze
 
 ---
 
-### 3단계: S1 메인 & 업로드 화면
+### 3단계: S1 메인 & 업로드 화면 ✅ 완료
 
 기준: `03_UI_FLOW.md` 3.1 / `02_PRD.md` F-1, 3.1~3.3
 
 | # | 작업 | 완료 |
 |---|---|---|
-| 3-1 | `ScreenMain.tsx` — S1-a 레이아웃: 오방색 띠, 현판 제목 + 도장, 소개 문구 | [ ] |
-| 3-2 | 드롭 영역: 주홍 점선 테두리 + 금색 ✦ 꺾쇠, 클릭 시 파일 선택 열림 | [ ] |
-| 3-3 | 카메라 버튼 (`capture="environment"`), 파일 선택 버튼, 드래그 앤 드롭 | [ ] |
-| 3-4 | 드래그 중 배경 부적 황 전환 + `shake` 애니메이션 | [ ] |
-| 3-5 | `lib/image.ts` — 형식 검사(jpg/png/webp), 10MB 초과 검사, 읽기 실패 감지 | [ ] |
-| 3-6 | S1-b — 미리보기 + "관상 보기" / "다른 사진 고르기" 버튼 | [ ] |
-| 3-7 | S1-c — 에러 안내창 (한지 + 주홍 테두리 + "흉" 도장), 에러 5종 문구 연결 | [ ] |
-| 3-8 | `lib/image.ts` — Canvas로 긴 변 1024px·JPEG 축소 함수 (서버 전송은 아직 안 함) | [ ] |
-| 3-9 | 하단 고지 3종: Gemini 전송 안내 / 18세 이상 / 재미용 허구 | [ ] |
+| 3-1 | `ScreenMain.tsx` — S1-a 레이아웃: 오방색 띠, 현판 제목 + 도장, 소개 문구 | [x] |
+| 3-2 | 드롭 영역: 주홍 점선 테두리 + 금색 ✦ 꺾쇠, 클릭 시 파일 선택 열림 | [x] |
+| 3-3 | 카메라 버튼 (`capture="environment"`), 파일 선택 버튼, 드래그 앤 드롭 | [x] |
+| 3-4 | 드래그 중 배경 부적 황 전환 + `shake` 애니메이션 | [x] |
+| 3-5 | `lib/image.ts` — 형식 검사(jpg/png/webp), 10MB 초과 검사, 읽기 실패 감지 | [x] |
+| 3-6 | S1-b — 미리보기 + "관상 보기" / "다른 사진 고르기" 버튼 | [x] |
+| 3-7 | S1-c — 에러 안내창 (한지 + 주홍 테두리 + "흉" 도장), 에러 5종 문구 연결 | [x] |
+| 3-8 | `lib/image.ts` — Canvas로 긴 변 1024px·JPEG 축소 함수 | [x] |
+| 3-9 | 하단 고지 3종: Gemini 전송 안내 / 18세 이상 / 재미용 허구 | [x] |
 
 **에러 문구 매핑 (`lib/messages.ts`):**
 
@@ -183,26 +177,23 @@ POST /api/analyze
 
 ---
 
-### 4단계: S2 로딩 · S3 결과 화면 (가짜 데이터)
+### 4단계: S2 로딩 · S3 결과 화면 ✅ 완료
 
 기준: `03_UI_FLOW.md` 3.2~3.3 / `DESIGN.md` 6~8장
 
-> 실제 Gemini 연결 전에 고정된 가짜 결과로 화면부터 완성합니다.  
-> AI 호출 문제와 UI 문제를 분리해서 디버깅하기 위함입니다.
-
 | # | 작업 | 완료 |
 |---|---|---|
-| 4-1 | `types/result.ts` — `AnalysisResult` 타입 정의 | [ ] |
-| 4-2 | `page.tsx` — 상태 머신 로직 (`idle` → `preview` → `loading` → `result` / `error`) | [ ] |
-| 4-3 | 가짜 결과 데이터 상수 정의 (nickname / summary / features / luckyItem 샘플) | [ ] |
-| 4-4 | `ScreenLoading.tsx` — 오방색 회전 링 (`conic-gradient` + mask), 🔔 방울 흔들림 | [ ] |
-| 4-5 | 로딩 멘트 8개 1.5초 간격 롤링, `ink-appear` 먹 번짐 전환 | [ ] |
-| 4-6 | 촛불빛 가장자리 깜빡임 (`candle-flicker`) | [ ] |
-| 4-7 | `ScreenResult.tsx` — 부적 카드: 이중 테두리, 썸네일, nickname, summary | [ ] |
-| 4-8 | 부위별 관상평 (◆ 마름모 글머리), 별자리 구분선, luckyItem, 면책 문구 | [ ] |
-| 4-9 | 카드 `unfold-card` 펼쳐짐 애니메이션 (0.6초) | [ ] |
-| 4-10 | 버튼 3종: "결과 공유하기" / "이미지로 저장" / "다시 검사하기" (동작은 다음 단계) | [ ] |
-| 4-11 | 모바일 한 화면 안에 칭호~행운의 아이템 들어오는지 확인 (PRD F-4) | [ ] |
+| 4-1 | `types/result.ts` — `AnalysisResult` 타입 정의 | [x] |
+| 4-2 | `page.tsx` — 상태 머신 로직 (`idle` → `preview` → `loading` → `result` / `error`) | [x] |
+| 4-3 | 가짜 결과 데이터 상수 정의 (nickname / summary / features / luckyItem 샘플) | [x] |
+| 4-4 | `ScreenLoading.tsx` — 오방색 회전 링 (`conic-gradient` + mask), 🔔 방울 흔들림 | [x] |
+| 4-5 | 로딩 멘트 8개 1.5초 간격 롤링, `ink-appear` 먹 번짐 전환 | [x] |
+| 4-6 | 촛불빛 가장자리 깜빡임 (`candle-flicker`) | [x] |
+| 4-7 | `ScreenResult.tsx` — 부적 카드: 이중 테두리, 썸네일, nickname, summary | [x] |
+| 4-8 | 부위별 관상평 (◆ 마름모 글머리), 별자리 구분선, luckyItem, 면책 문구 | [x] |
+| 4-9 | 카드 `unfold-card` 펼쳐짐 애니메이션 (0.6초) | [x] |
+| 4-10 | 버튼 3종: "결과 공유하기" / "이미지로 저장" / "다시 검사하기" | [x] |
+| 4-11 | 모바일 한 화면 안에 칭호~행운의 아이템 들어오는지 확인 (PRD F-4) | [ ] 8단계 실기기 테스트 필요 |
 
 **로딩 멘트 목록 (`lib/messages.ts`):**
 1. "『마의상법』 제3권 미간편 대조 중..."
@@ -223,21 +214,21 @@ POST /api/analyze
 
 ---
 
-### 5단계: Gemini 프록시 API (서버)
+### 5단계: Gemini 프록시 API (서버) ✅ 완료
 
 기준: `02_PRD.md` F-2, 3.1, 3.4, 3.5
 
 | # | 작업 | 완료 |
 |---|---|---|
-| 5-1 | `npm install @google/genai` | [ ] |
-| 5-2 | `lib/prompt.ts` — 현학적 B급 페르소나 프롬프트 작성 (외모 평가 금지, 얼굴 없으면 `NO_FACE` 반환 지시, 유쾌한 마무리, 부위 4개 고정) | [ ] |
-| 5-3 | `app/api/analyze/route.ts` — POST 핸들러: base64 디코딩 → Gemini 호출 → JSON 파싱 → 반환 | [ ] |
-| 5-4 | 모델 선택: 개발 시점에 무료 티어 제공 멀티모달 모델 공식 문서로 확인 후 확정 (예: `gemini-1.5-flash`) | [ ] |
-| 5-5 | JSON 출력 강제 (응답 스키마 지정 또는 프롬프트 지시), 파싱 실패 → `FAILED` 처리 | [ ] |
-| 5-6 | 에러 매핑: HTTP 429 → `QUOTA`, 타임아웃·기타 → `FAILED`, 얼굴 없음 → `NO_FACE` | [ ] |
-| 5-7 | API 키를 `process.env.GEMINI_API_KEY`에서만 읽음 — 응답·로그에 절대 노출 금지 | [ ] |
-| 5-8 | 이미지·결과 저장·로그 없음 확인 (Zero-DB) | [ ] |
-| 5-9 | Vercel 함수 최대 실행 시간 설정 (`maxDuration`) — Hobby 플랜 한도 확인 후 적용 | [ ] |
+| 5-1 | `npm install @google/genai` | [x] v2.32.0 설치 |
+| 5-2 | `lib/prompt.ts` — 현학적 B급 페르소나 프롬프트 작성 | [x] |
+| 5-3 | `app/api/analyze/route.ts` — POST 핸들러: base64 → Gemini 호출 → JSON 파싱 → 반환 | [x] |
+| 5-4 | 모델 선택: `gemini-1.5-flash` (무료 티어 멀티모달) | [x] |
+| 5-5 | JSON 출력 강제 (`responseMimeType: "application/json"`), 파싱 실패 → `FAILED` | [x] |
+| 5-6 | 에러 매핑: HTTP 429 → `QUOTA`, 타임아웃·기타 → `FAILED`, 얼굴 없음 → `NO_FACE` | [x] |
+| 5-7 | API 키 `process.env.GEMINI_API_KEY?.trim()` — 응답·로그 절대 노출 금지 | [x] |
+| 5-8 | 이미지·결과 저장·로그 없음 (Zero-DB) | [x] |
+| 5-9 | `maxDuration = 30` 설정 (Vercel Hobby 한도) | [x] |
 
 **프롬프트 핵심 지시사항 (`lib/prompt.ts`):**
 ```
@@ -258,16 +249,16 @@ POST /api/analyze
 
 ---
 
-### 6단계: 프론트–API 연결 & 에러 처리
+### 6단계: 프론트–API 연결 & 에러 처리 ✅ 완료
 
 | # | 작업 | 완료 |
 |---|---|---|
-| 6-1 | `ScreenMain.tsx`의 "관상 보기" 클릭 → 이미지 축소 → `POST /api/analyze` 전송 | [ ] |
-| 6-2 | 가짜 데이터 제거, 실제 API 응답으로 S3 렌더링 | [ ] |
-| 6-3 | 에러 5종 문구 (`lib/messages.ts`) → S1-c 안내창 연결 | [ ] |
-| 6-4 | 클라이언트 타임아웃 설정 (10초 초과 시 `FAILED` 처리) | [ ] |
-| 6-5 | 로딩 중 중복 요청 방지 (버튼 비활성화) | [ ] |
-| 6-6 | "다시 검사하기" 클릭 시 사진·결과·상태 완전 초기화 | [ ] |
+| 6-1 | `ScreenMain.tsx`의 "관상 보기" 클릭 → 이미지 축소 → `POST /api/analyze` 전송 | [x] |
+| 6-2 | 가짜 데이터 제거, 실제 API 응답으로 S3 렌더링 | [x] |
+| 6-3 | 에러 5종 문구 (`lib/messages.ts`) → S1-c 안내창 연결 | [x] |
+| 6-4 | 클라이언트 타임아웃 설정 (25초, `AbortController`) | [x] |
+| 6-5 | 로딩 중 중복 요청 방지 (`screen === "loading"` 가드) | [x] |
+| 6-6 | "다시 검사하기" 클릭 시 사진·결과·상태 완전 초기화 | [x] |
 
 **검증:**
 - 정면 사진 → 실제 관상 결과 카드 뜸
@@ -278,18 +269,18 @@ POST /api/analyze
 
 ---
 
-### 7단계: 공유 · 이미지 저장
+### 7단계: 공유 · 이미지 저장 ✅ 완료 (실기기 테스트 제외)
 
 기준: `02_PRD.md` F-5 / `03_UI_FLOW.md` 3.3
 
 | # | 작업 | 완료 |
 |---|---|---|
-| 7-1 | `npm install html-to-image` | [ ] |
-| 7-2 | `lib/share.ts` — 공유 텍스트 생성 (nickname + summary + luckyItem + 서비스 주소) | [ ] |
-| 7-3 | "결과 공유하기": `navigator.share` 지원 시 공유 창, 미지원 시 클립보드 복사 + Toast | [ ] |
-| 7-4 | "이미지로 저장": `document.fonts.ready` 대기 → 카드 영역 PNG 변환 → 다운로드 | [ ] |
-| 7-5 | PNG에 버튼·Toast 등 UI 요소가 찍히지 않도록 카드 영역만 캡처 범위 지정 | [ ] |
-| 7-6 | iOS Safari / 안드로이드 Chrome에서 공유·저장 실기기 테스트 | [ ] |
+| 7-1 | `npm install html-to-image` | [x] v1.11.13 설치 |
+| 7-2 | `lib/share.ts` — 공유 텍스트 생성 (nickname + summary + luckyItem + 서비스 주소) | [x] |
+| 7-3 | "결과 공유하기": `navigator.share` 지원 시 공유 창, 미지원 시 클립보드 복사 + Toast | [x] |
+| 7-4 | "이미지로 저장": `document.fonts.ready` 대기 → `toPng(pixelRatio:2)` → 다운로드 | [x] |
+| 7-5 | 카드 영역(`cardRef`)만 캡처 — 버튼·Toast PNG에 찍히지 않음 | [x] |
+| 7-6 | iOS Safari / 안드로이드 Chrome에서 공유·저장 실기기 테스트 | [ ] **8단계에서 진행** |
 
 **공유 텍스트 형식:**
 ```
@@ -308,7 +299,7 @@ POST /api/analyze
 
 ---
 
-### 8단계: 품질 점검 (성공 지표 검증)
+### 8단계: 품질 점검 (성공 지표 검증) ← **현재 단계**
 
 기준: `02_PRD.md` 5장
 
@@ -377,12 +368,13 @@ POST /api/analyze
 ```
 [x] Next.js 16 + TypeScript + Tailwind 4 설치 완료
 [x] 폴더 뼈대 생성 완료 (components/, lib/, types/, api/analyze/)
-[ ] .env.local 생성
-[ ] GitHub 연결
-[ ] Vercel 배포
-[ ] 디자인 기반 (2단계)
-[ ] 화면 구현 (3~4단계)
-[ ] Gemini API (5단계)
-[ ] 공유·저장 (7단계)
-[ ] 운영 배포 (9단계)
+[x] .env.local 생성 — Gemini API 키 등록 완료
+[x] GitHub 연결 — hemj3519/my---app 푸시 완료 (커밋 203d2ae)
+[x] 디자인 기반 (2단계) — 색 토큰·글꼴·컴포넌트 완료
+[x] 화면 구현 (3~4단계) — S1·S2·S3 화면 완료
+[x] Gemini API (5단계) — /api/analyze 엔드포인트 완료
+[x] 프론트-API 연결 (6단계) — 실제 호출·에러 처리 완료
+[x] 공유·저장 (7단계) — navigator.share + html-to-image 완료
+[ ] 품질 점검 (8단계) ← 현재 단계
+[ ] Vercel 배포 (9단계)
 ```
