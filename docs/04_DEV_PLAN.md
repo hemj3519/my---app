@@ -1,9 +1,10 @@
 # 🛠️ 개발 계획서 (04_DEV_PLAN.md)
 
-> **상태: 진행 중 (2026-11-05 업데이트)**  
+> **상태: 배포 완료 (2026-11-05 업데이트)**  
 > 기준 문서: `01_IDEA.md` · `02_PRD.md` · `03_UI_FLOW.md` · `DESIGN.md`  
 > 기술 스택 확정: **Next.js 16 (App Router) + TypeScript + Tailwind CSS 4 + Vercel Hobby**  
-> 현재 위치: **8단계 (품질 점검)** — 1~7단계 개발 완료, GitHub 푸시 완료, Vercel 배포 대기
+> 현재 위치: **9단계 완료** — 운영 배포 완료  
+> 운영 URL: **https://my-app-sandy-seven.vercel.app/**
 
 ---
 
@@ -299,7 +300,7 @@ POST /api/analyze
 
 ---
 
-### 8단계: 품질 점검 (성공 지표 검증) ← **현재 단계**
+### 8단계: 품질 점검 (성공 지표 검증)
 
 기준: `02_PRD.md` 5장
 
@@ -317,15 +318,17 @@ POST /api/analyze
 
 ---
 
-### 9단계: 운영 배포 & 릴리즈
+### 9단계: 운영 배포 & 릴리즈 ✅ 배포 완료
+
+> 운영 URL: **https://my-app-sandy-seven.vercel.app/**
 
 | # | 작업 | 완료 |
 |---|---|---|
-| 9-1 | Vercel 환경변수(Production)에 키 올바르게 등록 확인, 코드·저장소에 키 없음 최종 점검 | [ ] |
-| 9-2 | Google 프로젝트에 결제 수단 미연결 재확인 (0원 원칙) | [ ] |
-| 9-3 | Vercel Hobby 무료 플랜 확인 | [ ] |
-| 9-4 | 운영 주소에서 전 과정 실기기 테스트 (휴대폰 카메라 포함) | [ ] |
-| 9-5 | 공유 텍스트의 서비스 주소를 실제 배포 URL로 반영 | [ ] |
+| 9-1 | Vercel 환경변수(Production)에 `GEMINI_API_KEY` 등록 | [x] |
+| 9-2 | Google 프로젝트에 결제 수단 미연결 재확인 (0원 원칙) | [ ] 확인 필요 |
+| 9-3 | Vercel Hobby 무료 플랜 확인 | [x] |
+| 9-4 | 운영 주소에서 전 과정 실기기 테스트 (휴대폰 카메라 포함) | [ ] 테스트 필요 |
+| 9-5 | 공유 텍스트의 서비스 주소 — 배포 URL 자동 반영 (`window.location.origin`) | [x] |
 | 9-6 | `05_RELEASE_LOG.md`에 배포 주소·플랫폼·v0.1.0 기록 | [ ] |
 | 9-7 | 지인 5명 이상 공유 → 반응 확인 (성공 지표) | [ ] |
 
@@ -375,6 +378,6 @@ POST /api/analyze
 [x] Gemini API (5단계) — /api/analyze 엔드포인트 완료
 [x] 프론트-API 연결 (6단계) — 실제 호출·에러 처리 완료
 [x] 공유·저장 (7단계) — navigator.share + html-to-image 완료
-[ ] 품질 점검 (8단계) ← 현재 단계
-[ ] Vercel 배포 (9단계)
+[ ] 품질 점검 (8단계) — 운영 환경 실기기 테스트 필요
+[x] Vercel 배포 (9단계) — https://my-app-sandy-seven.vercel.app/
 ```
