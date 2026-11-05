@@ -1,41 +1,13 @@
 "use client";
 import { useState, useCallback } from "react";
 import type { AppScreen, AnalysisResult, ErrorCode } from "@/types/result";
-import { validateImage } from "@/lib/image";
+import { validateImage, resizeToJpeg } from "@/lib/image";
 import ObangsaekStripe from "@/components/ObangsaekStripe";
 import ScreenMain from "@/components/ScreenMain";
 import ScreenLoading from "@/components/ScreenLoading";
 import ScreenResult from "@/components/ScreenResult";
 
-// 4단계 목업 데이터 — 5·6단계에서 실제 Gemini API 응답으로 교체
-const MOCK_RESULT: AnalysisResult = {
-  nickname: "야근에 영혼 팔린 방구석 전략가",
-  summary:
-    "천정(天庭)이 넓으니 이는 『마의상법』에 이르길 '회의 시간에 딴생각하는 자의 상'이라. 그러나 그 딴생각이 실은 천하를 품은 묘수임을 세상이 아직 모를 뿐.",
-  features: [
-    {
-      part: "이마",
-      comment:
-        "광대한 초원과 같아 아이디어가 무한히 펼쳐지나, 실행에 옮기면 왜인지 흐지부지되는 운.",
-    },
-    {
-      part: "눈",
-      comment:
-        "흑염룡의 기운이 서려 카리스마 넘치나, 월요일 오전만은 예외라 졸린 눈이 됨.",
-    },
-    {
-      part: "코",
-      comment:
-        "재물운이 콧대에 깃들었으나 배달앱 장바구니에서 모두 새어 나가는 상.",
-    },
-    {
-      part: "입",
-      comment:
-        "말실수운이 충만하나 본인만 모름. 주변인들은 이미 알고 있음.",
-    },
-  ],
-  luckyItem: "다 식은 믹스커피",
-};
+const CLIENT_TIMEOUT_MS = 25000;
 
 export default function Home() {
   const [screen, setScreen] = useState<AppScreen>("idle");
@@ -53,8 +25,7 @@ export default function Home() {
         return;
       }
       if (previewUrl) URL.revokeObjectURL(previewUrl);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      setPreviewUrl(URL.createObjectURL(file));
       setImageFile(file);
       setScreen("preview");
     },
@@ -62,13 +33,46 @@ export default function Home() {
   );
 
   const handleAnalyze = useCallback(async () => {
-    if (!imageFile) return;
+    if (!imageFile || screen === "loading") return;
     setScreen("loading");
-    // 4단계: 목업 딜레이 3초 (5·6단계에서 실제 API 호출로 교체)
-    await new Promise((r) => setTimeout(r, 3000));
-    setResult(MOCK_RESULT);
-    setScreen("result");
-  }, [imageFile]);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CLIENT_TIMEOUT_MS);
+
+    try {
+      const base64 = await resizeToJpeg(imageFile);
+
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64 }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const data = (await res.json()) as Partial<AnalysisResult> & {
+        error?: string;
+      };
+
+      if (!res.ok || data.error) {
+        const code = (data.error ?? "FAILED") as ErrorCode;
+        setErrorCode(code);
+        setScreen("error");
+        return;
+      }
+
+      setResult(data as AnalysisResult);
+      setScreen("result");
+    } catch (err: unknown) {
+      clearTimeout(timeoutId);
+      const isTimeout =
+        err instanceof Error &&
+        (err.name === "AbortError" || err.name === "TimeoutError");
+      setErrorCode(isTimeout ? "FAILED" : "FAILED");
+      setScreen("error");
+    }
+  }, [imageFile, screen]);
 
   const handleReset = useCallback(() => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);

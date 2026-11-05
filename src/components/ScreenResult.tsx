@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { AnalysisResult } from "@/types/result";
+import { buildShareText } from "@/lib/share";
 import Stamp from "@/components/Stamp";
 import Toast from "@/components/Toast";
 
@@ -12,42 +13,59 @@ interface Props {
 
 export default function ScreenResult({ result, previewUrl, onReset }: Props) {
   const [toast, setToast] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  const shareText = [
-    "[킹받는 AI 관상소] 나의 관상 판독 결과",
-    `「${result.nickname}」`,
-    result.summary,
-    `🍀 행운의 아이템: ${result.luckyItem}`,
-  ].join("\n");
+  const shareText = buildShareText(result);
 
   const handleShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({ text: shareText });
+        return;
       } catch {
-        // 공유 취소 — 무시
+        // 사용자가 공유 취소 — 클립보드 폴백으로 넘어가지 않음
+        return;
       }
-    } else {
-      try {
-        await navigator.clipboard.writeText(shareText);
-        setToast("결과가 복사되었소! 원하는 곳에 붙여넣으시오.");
-      } catch {
-        setToast("복사에 실패했습니다. 직접 선택해서 복사해 주세요.");
-      }
+    }
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setToast("결과가 복사되었소! 원하는 곳에 붙여넣으시오.");
+    } catch {
+      setToast("복사에 실패했습니다. 직접 선택해서 복사해 주세요.");
     }
   };
 
-  const handleSave = () => {
-    // 7단계에서 html-to-image로 구현 예정
-    setToast("이미지 저장은 7단계에서 구현됩니다!");
+  const handleSave = async () => {
+    if (!cardRef.current || saving) return;
+    setSaving(true);
+    try {
+      await document.fonts.ready;
+      // html-to-image를 동적으로 불러와 번들 크기 최소화
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(cardRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
+      });
+      const link = document.createElement("a");
+      link.download = "gwansang-result.png";
+      link.href = dataUrl;
+      link.click();
+      setToast("이미지가 저장되었소이다! 갤러리를 확인해 주시오.");
+    } catch {
+      setToast("이미지 저장에 실패했습니다. 스크린샷으로 대신하세요.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <>
       <div className="flex flex-col pt-6 gap-4">
-        {/* 부적 카드 */}
+        {/* 부적 카드 — id는 PNG 저장 타겟 */}
         <div
           id="talisman-card"
+          ref={cardRef}
           className="talisman-card"
           style={{
             padding: "20px 16px",
@@ -60,7 +78,7 @@ export default function ScreenResult({ result, previewUrl, onReset }: Props) {
             style={{ height: "1px", background: "var(--gold-trim)", margin: "0 0 14px" }}
           />
 
-          {/* 서비스명 소제목 */}
+          {/* 서비스명 */}
           <p
             className="font-brush"
             style={{
@@ -135,8 +153,16 @@ export default function ScreenResult({ result, previewUrl, onReset }: Props) {
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "14px" }}>
             {result.features.map((f) => (
               <div key={f.part} style={{ display: "flex", gap: "6px" }}>
-                <span aria-hidden="true" style={{ color: "var(--vermilion)", fontSize: "0.75rem", marginTop: "2px", flexShrink: 0 }}>◆</span>
-                <p className="font-batang" style={{ fontSize: "0.875rem", color: "var(--ink-muk)", lineHeight: 1.65 }}>
+                <span
+                  aria-hidden="true"
+                  style={{ color: "var(--vermilion)", fontSize: "0.75rem", marginTop: "2px", flexShrink: 0 }}
+                >
+                  ◆
+                </span>
+                <p
+                  className="font-batang"
+                  style={{ fontSize: "0.875rem", color: "var(--ink-muk)", lineHeight: 1.65 }}
+                >
                   <strong>{f.part}</strong>: {f.comment}
                 </p>
               </div>
@@ -185,15 +211,28 @@ export default function ScreenResult({ result, previewUrl, onReset }: Props) {
           />
         </div>
 
-        {/* 버튼 영역 (카드 밖) */}
+        {/* 버튼 영역 (카드 밖 — PNG 저장에 포함 안 됨) */}
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "4px" }}>
-          <button className="btn-primary" onClick={handleShare} aria-label="결과 공유하기">
+          <button
+            className="btn-primary"
+            onClick={handleShare}
+            aria-label="결과 공유하기"
+          >
             💬 결과 공유하기
           </button>
-          <button className="btn-secondary" onClick={handleSave} aria-label="결과 이미지로 저장하기">
-            💾 이미지로 저장
+          <button
+            className="btn-secondary"
+            onClick={handleSave}
+            disabled={saving}
+            aria-label="결과 이미지로 저장하기"
+          >
+            {saving ? "저장 중..." : "💾 이미지로 저장"}
           </button>
-          <button className="btn-text" onClick={onReset} aria-label="처음으로 돌아가 다시 검사하기">
+          <button
+            className="btn-text"
+            onClick={onReset}
+            aria-label="처음으로 돌아가 다시 검사하기"
+          >
             🔄 다시 검사하기
           </button>
         </div>
