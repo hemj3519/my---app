@@ -109,11 +109,11 @@ POST /api/analyze
 | # | 작업 | 완료 |
 |---|---|---|
 | 1-1 | `.env.local` 파일 생성 후 `GEMINI_API_KEY=...` 입력 | [ ] |
-| 1-2 | `.gitignore`에 `.env.local` 포함 여부 확인 | [ ] |
-| 1-3 | `git init` → 첫 커밋 → GitHub 저장소에 푸시 | [ ] |
+| 1-2 | `.gitignore`에 `.env.local` 포함 여부 확인 | [x] `.env*` 패턴으로 보호 확인 |
+| 1-3 | `git init` → 첫 커밋 → GitHub 저장소에 푸시 | 커밋 완료(cb286af), 푸시 대기 |
 | 1-4 | Vercel에서 GitHub 저장소 연결 → 첫 자동 배포 실행 | [ ] |
 | 1-5 | Vercel 프로젝트 설정에서 환경변수 `GEMINI_API_KEY` 등록 (Production + Preview) | [ ] |
-| 1-6 | `page.tsx`를 임시 "환경 구축 완료" 메시지로 교체 | [ ] |
+| 1-6 | `page.tsx`를 임시 "환경 구축 완료" 메시지로 교체 | [x] |
 
 **검증:**
 - `npm run dev` → `http://localhost:3000` 페이지 뜸
