@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { buildPrompt } from "@/lib/prompt";
 import type { AnalysisResult } from "@/types/result";
+import sql from "@/lib/db";
 
 // Vercel Hobby 플랜 최대 실행 시간 (초)
 export const maxDuration = 30;
@@ -87,13 +88,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "FAILED" }, { status: 500 });
     }
 
-    // 7. 정상 반환 (이미지·결과 저장 없음 — Zero-DB)
+    // 7. 결과 저장 및 반환
     const result: AnalysisResult = {
       nickname: r.nickname,
       summary: r.summary,
       features: r.features.slice(0, 4),
       luckyItem: r.luckyItem,
     };
+
+    // DB 저장 실패 시에도 사용자에게 결과는 반환 (non-blocking)
+    if (process.env.DATABASE_URL) {
+      sql`
+        INSERT INTO analyses (nickname, summary, features, lucky_item)
+        VALUES (${result.nickname}, ${result.summary}, ${JSON.stringify(result.features)}, ${result.luckyItem})
+      `.catch(() => {});
+    }
+
     return NextResponse.json(result);
   } catch (err: unknown) {
     // 무료 사용량 초과 (HTTP 429)
