@@ -5,6 +5,8 @@ import { buildShareText } from "@/lib/share";
 import Stamp from "@/components/Stamp";
 import Toast from "@/components/Toast";
 
+type GuestbookState = "idle" | "form" | "submitting" | "done";
+
 interface Props {
   result: AnalysisResult;
   previewUrl: string | null;
@@ -15,6 +17,9 @@ export default function ScreenResult({ result, previewUrl, onReset }: Props) {
   const [toast, setToast] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [gbState, setGbState] = useState<GuestbookState>("idle");
+  const [gbName, setGbName] = useState("");
+  const [gbMsg, setGbMsg] = useState("");
 
   const shareText = buildShareText(result);
 
@@ -56,6 +61,29 @@ export default function ScreenResult({ result, previewUrl, onReset }: Props) {
       setToast("이미지 저장에 실패했습니다. 스크린샷으로 대신하세요.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleGuestbookSubmit = async () => {
+    if (gbState === "submitting") return;
+    setGbState("submitting");
+    try {
+      const res = await fetch("/api/guestbook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display_name: gbName,
+          message: gbMsg,
+          nickname: result.nickname,
+          lucky_item: result.luckyItem,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      setGbState("done");
+      setToast("방명록에 아로새겨졌소이다! 📜");
+    } catch {
+      setGbState("form");
+      setToast("기록에 실패했소이다. 다시 시도해 보시오.");
     }
   };
 
@@ -228,6 +256,107 @@ export default function ScreenResult({ result, previewUrl, onReset }: Props) {
           >
             {saving ? "저장 중..." : "💾 이미지로 저장"}
           </button>
+
+          {/* 방명록 */}
+          {gbState === "idle" && (
+            <button
+              className="btn-secondary"
+              onClick={() => setGbState("form")}
+              aria-label="방명록 남기기"
+            >
+              📜 방명록에 남기기
+            </button>
+          )}
+
+          {(gbState === "form" || gbState === "submitting") && (
+            <div
+              className="font-batang"
+              style={{
+                border: "1px solid var(--gold-trim)",
+                borderRadius: "6px",
+                padding: "14px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                background: "var(--parchment, #fdf6e3)",
+              }}
+            >
+              <p style={{ fontSize: "0.8125rem", color: "var(--muted-text)", textAlign: "center" }}>
+                📜 방명록에 한 말씀 남기시오
+              </p>
+              <input
+                type="text"
+                placeholder="이름 (최대 20자)"
+                maxLength={20}
+                value={gbName}
+                onChange={(e) => setGbName(e.target.value)}
+                disabled={gbState === "submitting"}
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  fontSize: "0.9rem",
+                  border: "1px solid var(--gold-trim)",
+                  borderRadius: "4px",
+                  background: "transparent",
+                  color: "var(--ink-muk)",
+                  fontFamily: "inherit",
+                }}
+              />
+              <textarea
+                placeholder="한마디 (최대 100자)"
+                maxLength={100}
+                rows={3}
+                value={gbMsg}
+                onChange={(e) => setGbMsg(e.target.value)}
+                disabled={gbState === "submitting"}
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  fontSize: "0.9rem",
+                  border: "1px solid var(--gold-trim)",
+                  borderRadius: "4px",
+                  background: "transparent",
+                  color: "var(--ink-muk)",
+                  fontFamily: "inherit",
+                  resize: "none",
+                }}
+              />
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  className="btn-primary"
+                  onClick={handleGuestbookSubmit}
+                  disabled={gbState === "submitting" || gbName.trim().length < 1 || gbMsg.trim().length < 1}
+                  style={{ flex: 1 }}
+                >
+                  {gbState === "submitting" ? "새기는 중..." : "새기기"}
+                </button>
+                <button
+                  className="btn-text"
+                  onClick={() => setGbState("idle")}
+                  disabled={gbState === "submitting"}
+                  style={{ flex: 1 }}
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          )}
+
+          {gbState === "done" && (
+            <p
+              className="font-batang"
+              style={{ textAlign: "center", fontSize: "0.875rem", color: "var(--muted-text)" }}
+            >
+              📜 방명록에 기록되었소이다
+              <a
+                href="/guestbook"
+                style={{ display: "block", marginTop: "4px", color: "var(--vermilion)", fontSize: "0.8125rem" }}
+              >
+                방명록 보러 가기 →
+              </a>
+            </p>
+          )}
+
           <button
             className="btn-text"
             onClick={onReset}
