@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import sql from "@/lib/db";
 
 export interface GuestbookEntry {
@@ -70,10 +71,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "FAILED" }, { status: 400 });
   }
 
+  // IP 해시 (SHA-256, 원본 IP 미저장)
+  const rawIp =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "unknown";
+  const ipHash = createHash("sha256").update(rawIp).digest("hex");
+
   try {
+    // 도배 방지: 동일 IP로 1시간 내 3건 이상이면 차단
+    const [rateRow] = (await sql`
+      SELECT COUNT(*)::int AS cnt
+      FROM guestbook
+      WHERE ip_hash = ${ipHash}
+        AND created_at > now() - interval '1 hour'
+    `) as [{ cnt: number }];
+    if (rateRow.cnt >= 3) {
+      return NextResponse.json({ error: "TOO_MANY" }, { status: 429 });
+    }
+
     const [row] = (await sql`
-      INSERT INTO guestbook (display_name, message, nickname, lucky_item)
-      VALUES (${display_name.trim()}, ${message.trim()}, ${nickname}, ${lucky_item})
+      INSERT INTO guestbook (display_name, message, nickname, lucky_item, ip_hash)
+      VALUES (${display_name.trim()}, ${message.trim()}, ${nickname}, ${lucky_item}, ${ipHash})
       RETURNING id, display_name, message, nickname, lucky_item, created_at
     `) as GuestbookEntry[];
     return NextResponse.json(row, { status: 201 });

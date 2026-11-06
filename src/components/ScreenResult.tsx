@@ -78,6 +78,11 @@ export default function ScreenResult({ result, previewUrl, onReset }: Props) {
           lucky_item: result.luckyItem,
         }),
       });
+      if (res.status === 429) {
+        setGbState("form");
+        setToast("방명록은 한 시간에 세 번까지만 허하오.");
+        return;
+      }
       if (!res.ok) throw new Error();
       setGbState("done");
       setToast("방명록에 아로새겨졌소이다! 📜");
