@@ -11,9 +11,10 @@
 | 아이디어 정의 | `01_IDEA.md` | ✅ 완료 (2026-11-03, DB 정책 수정 2026-11-06) |
 | 제품 요구사항 | `02_PRD.md` | ✅ 완료 (2026-11-03, 방명록 F-6 추가 2026-11-06) |
 | 화면 및 흐름 설계 | `03_UI_FLOW.md` | ✅ 완료 |
-| 개발 계획 | `04_DEV_PLAN.md` | ✅ 10단계 완료 |
-| 개발 (1~10단계) | — | ✅ 완료 |
-| 배포 | `05_RELEASE_LOG.md` | ✅ v0.2.0 운영 중 |
+| 개발 계획 | `04_DEV_PLAN.md` | ✅ 12단계 완료 |
+| 개발 (1~12단계) | — | ✅ 완료 |
+| 배포 | `05_RELEASE_LOG.md` | ✅ v0.3.0 운영 중 |
+| DB 구현 계획 | `06_DB_PLAN.md` | ✅ Phase 1·2 완료, Phase 3 대기 |
 
 ---
 
@@ -22,16 +23,27 @@
 | 항목 | 내용 |
 |---|---|
 | 운영 URL | https://my-app-sandy-seven.vercel.app/ |
-| 최신 버전 | v0.2.0 (2026-11-06) |
+| 최신 버전 | v0.3.0 (2026-11-06) |
 | DB | NeonDB `summer-heart-09242347` (싱가포르) |
-| 테이블 | `analyses` (분석 로그), `guestbook` (방명록) |
+| 테이블 | `analyses` (분석 로그), `guestbook` (방명록, ip_hash 컬럼 포함) |
 | 방명록 URL | /guestbook |
+| 통계 API | GET /api/stats |
+| 관리 API | PATCH /api/guestbook/[id] (x-admin-secret 헤더 필요) |
 
 ---
 
 ## 3. 최근 작업 내역
 
-**2026-11-06:**
+**2026-11-06 (v0.3.0 — DB Phase 1·2):**
+- `GET /api/guestbook` 커서 기반 페이지네이션 (20건씩, 더 보기)
+- `GET /api/stats` 신규 (분석 횟수 + 방명록 수, 1분 캐시)
+- `PATCH /api/guestbook/[id]` 관리자 숨김 처리 API (ADMIN_SECRET)
+- `guestbook.ip_hash` 컬럼 + 인덱스 추가, 1시간 3건 도배방지
+- `GuestbookList.tsx` 클라이언트 컴포넌트 신규
+- `ScreenResult`: 429 응답 안내 메시지 추가
+- `docs/06_DB_PLAN.md` DB 구현 계획서 작성
+
+**2026-11-06 (v0.2.0 — NeonDB + 방명록):**
 - NeonDB + Vercel CLI 연동 완료
 - `analyses` 테이블: 분석 결과 자동 저장 (non-blocking)
 - `guestbook` 테이블: 방명록 B안 구현
@@ -39,7 +51,6 @@
 - `GET/POST /api/guestbook` API 구현
 - `ScreenResult`: "방명록에 남기기" 인라인 폼
 - `/guestbook`: 목록 페이지 (ISR 30초)
-- 전체 문서 정합성 업데이트
 
 **2026-11-05:**
 - v0.1.0 초기 릴리즈 (Gemini 연동, 화면 3개, 공유/저장)
@@ -57,11 +68,10 @@
 - [ ] **9-2**: Google 프로젝트 결제 수단 미연결 재확인 (0원 원칙)
 - [ ] **9-7**: 지인 5명 이상 공유 → 반응 확인
 
-### 추후 개선 가능 항목
+### Phase 3 개선 항목 (06_DB_PLAN.md 참조)
 
-- 방명록 스팸 대응: IP 해시 기반 도배 방지
-- 방명록 관리 페이지 (is_hidden 토글)
-- 분석 통계 (analyses 테이블 집계)
+- [ ] **analyses 보존 기간 정책**: Vercel Cron Job으로 90일 이상 된 로그 삭제
+- [ ] **인기 별명 통계**: "가장 많이 나온 AI 별명 TOP 5" 등 재미 콘텐츠
 
 ---
 

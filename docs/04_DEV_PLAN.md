@@ -3,7 +3,7 @@
 > **상태: 운영 중 (2026-11-06 업데이트)**
 > 기준 문서: `01_IDEA.md` · `02_PRD.md` · `03_UI_FLOW.md` · `DESIGN.md`
 > 기술 스택 확정: **Next.js 16 (App Router) + TypeScript + Tailwind CSS 4 + NeonDB + Vercel Hobby**
-> 현재 위치: **10단계 완료** — NeonDB 연동 & 방명록 기능 배포
+> 현재 위치: **12단계 완료** — DB 개선 (페이지네이션·통계·관리API·도배방지)
 > 운영 URL: **https://my-app-sandy-seven.vercel.app/**
 
 ---
@@ -40,15 +40,20 @@ my-app/
 │  │  └─ api/
 │  │     ├─ analyze/
 │  │     │  └─ route.ts         # Gemini 프록시 + 분석 결과 DB 저장
-│  │     └─ guestbook/
-│  │        └─ route.ts         # GET(목록) / POST(작성) 방명록 API
+│  │     ├─ guestbook/
+│  │     │  ├─ route.ts         # GET(커서 페이지네이션) / POST(작성+도배방지) 방명록 API
+│  │     │  └─ [id]/
+│  │     │     └─ route.ts      # PATCH(숨김처리, ADMIN_SECRET 인증)
+│  │     └─ stats/
+│  │        └─ route.ts         # GET /api/stats — 분석·방명록 카운트
 │  ├─ components/
 │  │  ├─ ObangsaekStripe.tsx    # 오방색 띠 (공통)
 │  │  ├─ Stamp.tsx              # 붉은 도장 컴포넌트
 │  │  ├─ Toast.tsx              # 부적 쪽지 토스트
 │  │  ├─ ScreenMain.tsx         # S1 메인 & 업로드
 │  │  ├─ ScreenLoading.tsx      # S2 분석 로딩
-│  │  └─ ScreenResult.tsx       # S3 결과 & 공유 & 방명록 폼
+│  │  ├─ ScreenResult.tsx       # S3 결과 & 공유 & 방명록 폼
+│  │  └─ GuestbookList.tsx      # 방명록 목록 클라이언트 컴포넌트 (더 보기)
 │  ├─ lib/
 │  │  ├─ db.ts                  # NeonDB 연결 모듈
 │  │  ├─ image.ts               # 사진 검사·Canvas 축소
@@ -80,13 +85,25 @@ POST /api/analyze
   4xx/5xx: { error: "NO_FACE" | "QUOTA" | "FAILED" }
   부작용: analyses 테이블에 결과 저장 (non-blocking)
 
-GET /api/guestbook
-  200: GuestbookEntry[]  // 최신 50건, is_hidden=false만
+GET /api/guestbook?cursor={ISO}&limit={n}
+  200: { items: GuestbookEntry[], nextCursor: string | null }
+       cursor 없음 → 첫 페이지 (기본 20건), cursor 있음 → 해당 시각 이전
 
 POST /api/guestbook
   Body: { display_name, message, nickname, lucky_item }
   201: GuestbookEntry
-  400: { error: "FAILED" }  // 유효성 검증 실패
+  400: { error: "FAILED" }   // 유효성 검증 실패
+  429: { error: "TOO_MANY" } // 1시간 내 3건 초과 (IP 해시 기준)
+
+PATCH /api/guestbook/[id]
+  Header: x-admin-secret: {ADMIN_SECRET}
+  Body: { is_hidden: boolean }
+  200: { id, is_hidden }
+  401: 인증 실패 / 404: 항목 없음
+
+GET /api/stats
+  200: { totalAnalyses: number, totalGuestbook: number }
+  캐시: revalidate 60초
 ```
 
 ### 1.4 DB 스키마
@@ -110,6 +127,7 @@ CREATE TABLE guestbook (
   nickname     TEXT NOT NULL,  -- AI 별명 (자동)
   lucky_item   TEXT NOT NULL,  -- 행운 아이템 (자동)
   is_hidden    BOOLEAN NOT NULL DEFAULT false,
+  ip_hash      TEXT,           -- SHA-256 해시 IP (도배 방지용, 원본 미저장)
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
@@ -286,6 +304,31 @@ CREATE TABLE guestbook (
 
 ---
 
+### 11단계: DB Phase 1 — 페이지네이션 & 통계 API ✅ 완료 (2026-11-06)
+
+| # | 작업 | 완료 |
+|---|---|---|
+| 11-1 | `GET /api/guestbook` 커서 기반 페이지네이션 (`?cursor=&limit=`) | [x] |
+| 11-2 | 응답 형식 변경: `GuestbookEntry[]` → `{ items, nextCursor }` | [x] |
+| 11-3 | `GuestbookList.tsx` 클라이언트 컴포넌트 (더 보기 버튼) | [x] |
+| 11-4 | `guestbook/page.tsx` 전체 건수 표시 + GuestbookList 연동 | [x] |
+| 11-5 | `GET /api/stats` 신규 엔드포인트 (revalidate 60초) | [x] |
+
+---
+
+### 12단계: DB Phase 2 — 숨김 API & 도배 방지 ✅ 완료 (2026-11-06)
+
+| # | 작업 | 완료 |
+|---|---|---|
+| 12-1 | `PATCH /api/guestbook/[id]` 관리자 숨김 처리 API | [x] |
+| 12-2 | `x-admin-secret` 헤더 인증 (환경변수 `ADMIN_SECRET` 대조) | [x] |
+| 12-3 | `guestbook` 테이블 `ip_hash TEXT` 컬럼 추가 (마이그레이션) | [x] |
+| 12-4 | `guestbook_ip_hash_idx` 인덱스 추가 | [x] |
+| 12-5 | `POST /api/guestbook` SHA-256 IP 해시 저장 + 1시간 3건 초과 시 429 | [x] |
+| 12-6 | `ScreenResult.tsx` 429 응답 B급 안내 메시지 처리 | [x] |
+
+---
+
 ## 3. 단계 의존 관계
 
 ```
@@ -309,7 +352,7 @@ CREATE TABLE guestbook (
 | iOS Safari에서 PNG 글꼴 깨짐 | `document.fonts.ready` 대기 |
 | AI 톤 기준 위반 (외모 평가) | 프롬프트에 금지 명시 + 8단계 테스트 |
 | API 키 / DB 연결 문자열 유출 | 서버 환경변수에만 보관, `.env.local` git 제외 |
-| 방명록 스팸/욕설 | `is_hidden` 플래그로 수동 관리 가능 |
+| 방명록 스팸/욕설 | IP 해시 기반 도배방지 (1시간 3건), `PATCH /api/guestbook/[id]` ADMIN_SECRET 관리 |
 
 ---
 
@@ -332,4 +375,13 @@ CREATE TABLE guestbook (
     - guestbook 테이블: 방명록 선택 저장
     - /api/guestbook: GET/POST 완료
     - /guestbook: 목록 페이지 완료
+[x] DB Phase 1 (11단계) — 완료 (2026-11-06)
+    - GET /api/guestbook: 커서 기반 페이지네이션 (20건씩, 더 보기)
+    - GET /api/stats: 분석 횟수 + 방명록 수 (1분 캐시)
+    - GuestbookList.tsx: 클라이언트 컴포넌트
+[x] DB Phase 2 (12단계) — 완료 (2026-11-06)
+    - PATCH /api/guestbook/[id]: 숨김 처리 (ADMIN_SECRET 인증)
+    - guestbook.ip_hash 컬럼 + 인덱스 추가 (마이그레이션)
+    - POST /api/guestbook: 1시간 3건 도배 방지 (SHA-256 IP 해시)
+    - ScreenResult: 429 응답 B급 안내 메시지
 ```

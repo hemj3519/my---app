@@ -59,6 +59,7 @@ Vercel (서버리스 함수)
 │ nickname     TEXT  NOT NULL         │  ← AI 별명 (자동)
 │ lucky_item   TEXT  NOT NULL         │  ← 행운 아이템 (자동)
 │ is_hidden    BOOL  DEFAULT false    │  ← 관리용 숨김
+│ ip_hash      TEXT                   │  ← SHA-256 IP 해시 (도배방지)
 │ created_at   TIMESTAMPTZ NOT NULL   │
 └─────────────────────────────────────┘
 ```
@@ -91,8 +92,11 @@ CREATE TABLE IF NOT EXISTS guestbook (
   nickname     TEXT        NOT NULL,
   lucky_item   TEXT        NOT NULL,
   is_hidden    BOOLEAN     NOT NULL DEFAULT false,
+  ip_hash      TEXT,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE INDEX IF NOT EXISTS guestbook_ip_hash_idx
+  ON guestbook (ip_hash, created_at DESC);
 -- is_hidden = false 인 행만 인덱싱 (공개 목록 조회 최적화)
 CREATE INDEX IF NOT EXISTS guestbook_created_at_idx
   ON guestbook (created_at DESC)
@@ -113,26 +117,29 @@ CREATE INDEX IF NOT EXISTS guestbook_created_at_idx
 | 4 | `analyses` 테이블 생성 + 인덱스 | NeonDB | ✅ |
 | 5 | `guestbook` 테이블 생성 + 인덱스 | NeonDB | ✅ |
 | 6 | `POST /api/analyze` → analyses 저장 (non-blocking) | 코드 | ✅ |
-| 7 | `GET /api/guestbook` — 최신 50건 | 코드 | ✅ |
-| 8 | `POST /api/guestbook` — 작성 + 유효성 검증 | 코드 | ✅ |
-| 9 | `ScreenResult` — 방명록 인라인 폼 | 코드 | ✅ |
-| 10 | `/guestbook` — 목록 페이지 (ISR 30초) | 코드 | ✅ |
+| 7 | `GET /api/guestbook` — 커서 기반 페이지네이션 (20건) | 코드 | ✅ |
+| 8 | `POST /api/guestbook` — 작성 + 유효성 검증 + 도배방지 | 코드 | ✅ |
+| 9 | `ScreenResult` — 방명록 인라인 폼 + 429 안내 | 코드 | ✅ |
+| 10 | `/guestbook` — 목록 페이지 (ISR 30초, 더 보기) | 코드 | ✅ |
+| 11 | `GET /api/stats` — 분석 횟수 + 방명록 수 | 코드 | ✅ |
+| 12 | `PATCH /api/guestbook/[id]` — 숨김 처리 (ADMIN_SECRET) | 코드 | ✅ |
+| 13 | `guestbook.ip_hash` 컬럼 + 인덱스 (NeonDB 반영) | DB | ✅ |
 
-### 3.2 현재 구현의 제약사항
+### 3.2 현재 구현의 제약사항 (Phase 1·2 완료 후 갱신)
 
 | 제약 | 내용 | 영향도 |
 |---|---|---|
-| 방명록 고정 LIMIT 50 | 51번째 이후 항목 조회 불가 | 중 (데이터 증가 시) |
-| is_hidden 수동 불가 | DB 직접 접근으로만 숨김 처리 가능 | 중 (운영 시 불편) |
-| 도배 방지 없음 | 동일인이 무제한 작성 가능 | 중 |
-| analyses 보존 기간 미정 | 데이터 무한 누적 | 낮 (소규모) |
-| 통계 API 없음 | 분석 횟수 등 확인 불가 | 낮 |
+| ~~방명록 고정 LIMIT 50~~ | ~~51번째 이후 항목 조회 불가~~ | ✅ Phase 1 — 커서 페이지네이션으로 해결 |
+| ~~is_hidden 수동 불가~~ | ~~DB 직접 접근으로만 숨김 처리 가능~~ | ✅ Phase 2 — PATCH API + ADMIN_SECRET |
+| ~~도배 방지 없음~~ | ~~동일인이 무제한 작성 가능~~ | ✅ Phase 2 — ip_hash + 1시간 3건 제한 |
+| ~~통계 API 없음~~ | ~~분석 횟수 등 확인 불가~~ | ✅ Phase 1 — GET /api/stats |
+| analyses 보존 기간 미정 | 데이터 무한 누적 | 낮 (소규모) — Phase 3 예정 |
 
 ---
 
 ## 4. 구현 계획
 
-### Phase 1 — 핵심 완성 (우선순위: 높음)
+### Phase 1 — 핵심 완성 ✅ 완료 (2026-11-06)
 
 #### 4-1. 방명록 커서 기반 페이지네이션
 
@@ -181,7 +188,7 @@ LIMIT 21;  -- 21개 조회 후 21번째 있으면 nextCursor 반환
 
 ---
 
-### Phase 2 — 운영 편의 (우선순위: 중간)
+### Phase 2 — 운영 편의 ✅ 완료 (2026-11-06)
 
 #### 4-3. 방명록 숨김 처리 API
 

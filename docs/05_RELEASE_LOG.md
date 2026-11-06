@@ -19,6 +19,23 @@
 
 ## 2. 버전별 릴리즈 노트
 
+### v0.3.0 (2026-11-06)
+
+**주요 내용: DB 개선 — 페이지네이션·통계·숨김API·도배방지**
+
+- `GET /api/guestbook` 커서 기반 페이지네이션 (기본 20건, `?cursor=&limit=` 지원)
+- `GuestbookList.tsx` 클라이언트 컴포넌트 — "더 보기" 버튼으로 추가 로드
+- `/guestbook` 페이지 — 전체 건수 표시, GuestbookList 연동
+- `GET /api/stats` 신규 — `{ totalAnalyses, totalGuestbook }`, 1분 ISR 캐시
+- `PATCH /api/guestbook/[id]` 신규 — 관리자 숨김 처리 (`x-admin-secret` 헤더 인증)
+- `guestbook` 테이블 `ip_hash TEXT` 컬럼 + 인덱스 추가 (NeonDB 마이그레이션 완료)
+- `POST /api/guestbook` — SHA-256 IP 해시 저장, 1시간 내 3건 초과 시 429
+- `ScreenResult.tsx` — 429 응답 시 B급 안내 메시지 처리
+
+**커밋:** `8ba13ab` (Phase 1 페이지네이션·통계), `09d405b` (Phase 2 숨김·도배방지)
+
+---
+
 ### v0.2.0 (2026-11-06)
 
 **주요 내용: NeonDB 연동 & 방명록 기능 추가**
