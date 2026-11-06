@@ -1,20 +1,53 @@
-# 🚀 배포 및 변경 기록 (05\_RELEASE\_LOG.md)
+# 🚀 배포 및 변경 기록 (05_RELEASE_LOG.md)
 
 이 문서는 프로젝트 배포 정보와 버전별 변경 사항을 기록하는 문서입니다.
 
-\---
+---
 
-## 1\. 배포 환경 정보
+## 1. 배포 환경 정보
 
-* **배포 주소 (URL)**: *(배포 시 추가)*
-* **호스팅/플랫폼**:
+| 항목 | 내용 |
+|---|---|
+| 운영 URL | https://my-app-sandy-seven.vercel.app/ |
+| 호스팅 | Vercel Hobby (무료 플랜) |
+| DB | NeonDB 무료 플랜 — `summer-heart-09242347` (ap-southeast-1, 싱가포르) |
+| 소스 저장소 | https://github.com/hemj3519/my---app (비공개) |
+| 자동 배포 | main 브랜치 push → Vercel 자동 빌드·배포 |
+| 환경변수 | `GEMINI_API_KEY` (Production + Preview), `DATABASE_URL` (Production + Preview) |
 
-\---
+---
 
-## 2\. 버전별 릴리즈 노트
+## 2. 버전별 릴리즈 노트
 
-### v0.1.0 (준비 중)
+### v0.2.0 (2026-11-06)
 
-* **일자**:
-* **주요 내용**: 초기 릴리즈
+**주요 내용: NeonDB 연동 & 방명록 기능 추가**
 
+- NeonDB 프로젝트 생성 (싱가포르 리전, 무료 플랜)
+- `analyses` 테이블: 분석 결과 자동 저장 (non-blocking)
+- `guestbook` 테이블: display_name, message, nickname, lucky_item, is_hidden
+- `GET /api/guestbook`: 최신 50건 목록 조회
+- `POST /api/guestbook`: 방명록 작성 (유효성 검증, DB CHECK 제약)
+- `ScreenResult`: "📜 방명록에 남기기" 버튼 + 인라인 폼 추가
+- `/guestbook`: 방명록 목록 페이지 (ISR 30초, 앱 B급 톤 유지)
+- Vercel 환경변수 `DATABASE_URL` Production + Preview 등록
+- DB 정책 변경: Zero-DB → 이미지 비저장 유지 + 방명록 텍스트 선택 저장
+
+**커밋:** `fa504fb` (NeonDB 연동), `a5398c2` (방명록 기능)
+
+---
+
+### v0.1.0 (2026-11-05)
+
+**주요 내용: 초기 릴리즈**
+
+- Next.js 16 + TypeScript + Tailwind CSS 4 기반 프로젝트
+- Google Gemini API (`gemini-1.5-flash`) 연동, 얼굴 관상 분석
+- 무속·점집 패러디 B급 밈 디자인 (오방색·한지·부적·붓글씨)
+- 화면 3개: 메인/업로드 → 로딩 (오방색 링·방울·멘트 롤링) → 결과 (부적 카드)
+- 텍스트 공유 (`navigator.share`) + 결과 이미지 저장 (`html-to-image`)
+- 에러 5종 처리 (형식, 용량, 얼굴 없음, 쿼터 초과, 실패)
+- Zero-DB 정책 (이미지·결과 미저장)
+- Vercel Hobby 무료 배포
+
+**커밋:** `3bbe3f7`, `18e1dda`, `203d2ae`
