@@ -133,7 +133,7 @@ CREATE INDEX IF NOT EXISTS guestbook_created_at_idx
 | ~~is_hidden 수동 불가~~ | ~~DB 직접 접근으로만 숨김 처리 가능~~ | ✅ Phase 2 — PATCH API + ADMIN_SECRET |
 | ~~도배 방지 없음~~ | ~~동일인이 무제한 작성 가능~~ | ✅ Phase 2 — ip_hash + 1시간 3건 제한 |
 | ~~통계 API 없음~~ | ~~분석 횟수 등 확인 불가~~ | ✅ Phase 1 — GET /api/stats |
-| analyses 보존 기간 미정 | 데이터 무한 누적 | 낮 (소규모) — Phase 3 예정 |
+| ~~analyses 보존 기간 미정~~ | ~~데이터 무한 누적~~ | ✅ Phase 3 — Vercel Cron Job 월 1회 90일 삭제 |
 
 ---
 
@@ -226,7 +226,7 @@ CREATE INDEX guestbook_ip_hash_idx ON guestbook (ip_hash, created_at DESC);
 
 ---
 
-### Phase 3 — 선택 개선 (우선순위: 낮음)
+### Phase 3 — 선택 개선 ✅ 완료 (2026-11-06)
 
 #### 4-5. analyses 보존 기간 정책
 

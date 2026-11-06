@@ -116,7 +116,7 @@ export default function GuestbookList({ initialItems, initialNextCursor }: Props
               opacity: loading ? 0.6 : 1,
             }}
           >
-            {loading ? "불러오는 중..." : "더 보기"}
+            {loading ? "불러오는 중..." : "방명록 더 보기"}
           </button>
         </div>
       )}

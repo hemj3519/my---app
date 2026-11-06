@@ -132,9 +132,11 @@ export default function ScreenMain({
           {/* 드롭 영역 */}
           <div
             className={`drop-zone ${isDragging ? "drag-over" : ""}`}
-            role="region"
-            aria-label="사진 업로드 영역 — 사진을 끌어다 놓거나 버튼을 눌러주세요"
+            role="button"
+            tabIndex={0}
+            aria-label="사진 업로드 영역 — 클릭하거나 사진을 끌어다 놓으세요"
             onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -146,6 +148,7 @@ export default function ScreenMain({
               justifyContent: "center",
               gap: "8px",
               padding: "24px 16px",
+              cursor: "pointer",
             }}
           >
             {/* 모서리 별 꺾쇠 */}

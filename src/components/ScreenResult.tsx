@@ -291,6 +291,8 @@ export default function ScreenResult({ result, previewUrl, onReset }: Props) {
               </p>
               <input
                 type="text"
+                id="gb-name"
+                aria-label="방명록 이름 (최대 20자)"
                 placeholder="이름 (최대 20자)"
                 maxLength={20}
                 value={gbName}
@@ -308,6 +310,8 @@ export default function ScreenResult({ result, previewUrl, onReset }: Props) {
                 }}
               />
               <textarea
+                id="gb-message"
+                aria-label="방명록 한마디 (최대 100자)"
                 placeholder="한마디 (최대 100자)"
                 maxLength={100}
                 rows={3}

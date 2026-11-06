@@ -19,6 +19,22 @@
 
 ## 2. 버전별 릴리즈 노트
 
+### v0.4.0 (2026-11-06)
+
+**주요 내용: DB Phase 3 & 접근성 개선 — 배포 직전 완료**
+
+- `GET /api/cron/cleanup` 신규 — Vercel Cron Job (매월 1일, 90일 초과 analyses 삭제)
+- `vercel.json` 추가 — cron 스케줄 설정
+- `GET /api/stats` 확장 — `topNicknames: NicknameRank[]` TOP 5 추가
+- 드롭존 키보드 접근성: `tabIndex`, Enter/Space 키 핸들러 추가
+- 방명록 폼 입력 필드 `aria-label` 추가 (이름·한마디)
+- 8-6 고지 문구 코드 확인 완료 (메인 3종, 결과 면책 ✅)
+- 환경변수 `CRON_SECRET` Vercel 등록 필요 (Cron Job 인증용)
+
+**커밋:** `(이번 커밋)`
+
+---
+
 ### v0.3.0 (2026-11-06)
 
 **주요 내용: DB 개선 — 페이지네이션·통계·숨김API·도배방지**
